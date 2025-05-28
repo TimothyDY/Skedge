@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skedge | Profile</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/SkedgeLogo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --input-bg: #ffffff;
+            --input-border: #ced4da;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #212529;
+            --bg-secondary: #343a40;
+            --border-color: #495057;
+            --text-primary: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --input-bg: #2b3035;
+            --input-border: #495057;
+        }
+
+        body {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+            width: auto;
+            margin-right: 8px;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .subjects-container {
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            padding: 1rem;
+            background-color: var(--bg-primary);
+        }
+        .subject-checkbox {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        .subject-checkbox input[type="checkbox"]:disabled + label {
+            opacity: 0.7;
+            color: var(--text-secondary);
+        }
+        .subject-checkbox input[type="checkbox"]:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .subject-checkbox input[type="checkbox"] {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+        }
+        .subject-checkbox input[type="checkbox"]:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        hr {
+            border-color: var(--border-color);
+            opacity: 0.5;
+        }
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .form-text {
+            color: var(--text-secondary) !important;
+        }
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .form-select option {
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            padding: 8px;
+        }
+        .form-select:not([multiple]) option {
+            padding: 8px;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+            color: white;
+        }
+        /* Style for form sections */
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+        /* Style for the container */
+        .container.mt-5 {
+            margin-top: 3rem !important;
+        }
+        /* Style for the heading */
+        h2 {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+        /* Improved checkbox visibility */
+        .form-check-input {
+            width: 1.2em;
+            height: 1.2em;
+            margin-top: 0.15em;
+            background-color: var(--input-bg);
+            border: 2px solid var(--input-border);
+        }
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .form-check-label {
+            padding-left: 0.5rem;
+            user-select: none;
+        }
+        #darkModeToggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,.55);
+            text-decoration: none;
+        }
+
+        #darkModeToggle:hover {
+            color: rgba(255,255,255,.75);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <img src="{{ url_for('static', filename='assets/SkedgeLogo.png') }}" alt="Skedge Logo">
+                Skedge
+            </span>
+            <div class="navbar-nav ms-auto">
+                <a href="#" id="darkModeToggle" class="nav-link">
+                    <i class="bi bi-sun-fill" id="darkModeIcon"></i>
+                </a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2>Student Profile</h2>
+        {% if user.profile %}
+        <form action="/update_profile" method="POST">
+        {% else %}
+        <form action="/profile" method="POST">
+        {% endif %}
+            <div class="mb-3">
+                <label for="full_name" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="full_name" name="full_name" value="{{ user.profile.full_name if user.profile else '' }}" required>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="grade" class="form-label">Grade</label>
+                    <select class="form-select" id="grade" name="grade" required>
+                        <option value="">Select Grade</option>
+                        <option value="10" {% if user.profile and user.profile.grade == 10 %}selected{% endif %}>10</option>
+                        <option value="11" {% if user.profile and user.profile.grade == 11 %}selected{% endif %}>11</option>
+                        <option value="12" {% if user.profile and user.profile.grade == 12 %}selected{% endif %}>12</option>
+                    </select>
+                </div>
+
+                <div class="col">
+                    <label for="stream" class="form-label">Stream</label>
+                    <select class="form-select" id="stream" name="stream" onchange="updateSubjects()" required>
+                        <option value="">Select Stream</option>
+                        <option value="science" {% if user.profile and user.profile.stream == 'science' %}selected{% endif %}>Science</option>
+                        <option value="social" {% if user.profile and user.profile.stream == 'social' %}selected{% endif %}>Social Studies</option>
+                    </select>
+                </div>
+
+                <div class="col">
+                    <label for="class_number" class="form-label">Class Number</label>
+                    <select class="form-select" id="class_number" name="class_number" required>
+                        <option value="">Select Class</option>
+                        {% for i in range(1, 11) %}
+                        <option value="{{ i }}" {% if user.profile and user.profile.class_number == i %}selected{% endif %}>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="language" class="form-label">Language</label>
+                <select class="form-select" id="language" name="language" required>
+                    <option value="">Select Language</option>
+                    <option value="Japanese" {% if user.profile and user.profile.language == 'Japanese' %}selected{% endif %}>Japanese</option>
+                    <option value="Mandarin" {% if user.profile and user.profile.language == 'Mandarin' %}selected{% endif %}>Mandarin</option>
+                    <option value="Korean" {% if user.profile and user.profile.language == 'Korean' %}selected{% endif %}>Korean</option>
+                    <option value="German" {% if user.profile and user.profile.language == 'German' %}selected{% endif %}>German</option>
+                    <option value="French" {% if user.profile and user.profile.language == 'French' %}selected{% endif %}>French</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Subjects</label>
+                <div class="subjects-container" id="subjects-container">
+                    <!-- Checkboxes will be populated by JavaScript -->
+                </div>
+                <small class="form-text text-muted">Select the subjects you want to take</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Profile</button>
+        </form>
+    </div>
+
+    <script>
+        function updateSubjects() {
+            const stream = document.getElementById('stream').value;
+            const subjectsContainer = document.getElementById('subjects-container');
+            const currentSubjects = '{{ user.profile.subjects if user.profile else "" }}'.split(',').map(s => s.trim());
+            
+            subjectsContainer.innerHTML = '';
+            
+            // Add mandatory subjects section
+            const mandatoryDiv = document.createElement('div');
+            mandatoryDiv.className = 'mb-3';
+            mandatoryDiv.innerHTML = `
+                <label class="form-label">Mandatory Subjects</label>
+                <div class="subject-checkbox">
+                    <input type="checkbox" class="form-check-input me-2" checked disabled>
+                    <label class="form-check-label text-secondary">English</label>
+                    <input type="hidden" name="subjects" value="English">
+                </div>
+                <div class="subject-checkbox">
+                    <input type="checkbox" class="form-check-input me-2" checked disabled>
+                    <label class="form-check-label text-secondary">Arts and Crafts</label>
+                    <input type="hidden" name="subjects" value="Arts and Crafts">
+                </div>
+                <div class="subject-checkbox">
+                    <input type="checkbox" class="form-check-input me-2" checked disabled>
+                    <label class="form-check-label text-secondary">Physical Education</label>
+                    <input type="hidden" name="subjects" value="Physical Education">
+                </div>
+            `;
+            subjectsContainer.appendChild(mandatoryDiv);
+
+            // Add divider
+            const divider = document.createElement('hr');
+            divider.className = 'my-3';
+            subjectsContainer.appendChild(divider);
+
+            // Add optional subjects section
+            const optionalDiv = document.createElement('div');
+            optionalDiv.innerHTML = '<label class="form-label">Optional Subjects</label>';
+            subjectsContainer.appendChild(optionalDiv);
+            
+            let subjects = [];
+            if (stream === 'science') {
+                subjects = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science'];
+            } else if (stream === 'social') {
+                subjects = ['History', 'Geography', 'Economics', 'Political Science', 'Sociology'];
+            }
+
+            subjects.forEach(subject => {
+                const div = document.createElement('div');
+                div.className = 'subject-checkbox';
+                
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'form-check-input me-2';
+                input.id = subject.toLowerCase().replace(/\s+/g, '-');
+                input.name = 'subjects';
+                input.value = subject;
+                input.checked = currentSubjects.includes(subject);
+
+                const label = document.createElement('label');
+                label.className = 'form-check-label';
+                label.htmlFor = input.id;
+                label.textContent = subject;
+
+                div.appendChild(input);
+                div.appendChild(label);
+                subjectsContainer.appendChild(div);
+            });
+        }
+
+        // Dark mode functionality
+        function initDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (!darkModeToggle) return;
+
+            // Check for saved dark mode preference
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            setDarkMode(isDarkMode);
+            
+            darkModeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isCurrentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                setDarkMode(!isCurrentlyDark);
+            });
+        }
+        
+        function setDarkMode(isDark) {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.getElementById('darkModeIcon');
+            
+            if (icon) {
+                icon.className = isDark ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+        }
+
+        // Initialize dark mode and subjects
+        document.addEventListener('DOMContentLoaded', () => {
+            initDarkMode();
+            updateSubjects();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

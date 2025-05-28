@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skedge | Login</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/SkedgeLogo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #212529;
+            --bg-secondary: #343a40;
+            --border-color: #495057;
+            --text-primary: #f8f9fa;
+            --text-secondary: #adb5bd;
+        }
+
+        body {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+            width: auto;
+            margin-right: 8px;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkModeToggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,.55);
+            text-decoration: none;
+        }
+
+        #darkModeToggle:hover {
+            color: rgba(255,255,255,.75);
+        }
+
+        .form-control {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <img src="{{ url_for('static', filename='assets/SkedgeLogo.png') }}" alt="Skedge Logo">
+                Skedge
+            </span>
+            <div class="navbar-nav ms-auto">
+                <a href="#" id="darkModeToggle" class="nav-link">
+                    <i class="bi bi-sun-fill" id="darkModeIcon"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1>Login</h1>
+        <form method="POST">
+            <div class="mb-3">
+                <label>Username:</label>
+                <input type="text" name="username" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label>Password:</label>
+                <input type="password" name="password" class="form-control">
+            </div>
+            <input type="submit" value="Login" class="btn btn-primary">
+        </form>
+        <p class="mt-3">Don't have an account? <a href="/register">Register</a></p>
+        
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+    </div>
+    
+    <script>
+        // Dark mode functionality
+        function initDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (!darkModeToggle) return;
+
+            // Check for saved dark mode preference
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            setDarkMode(isDarkMode);
+            
+            darkModeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isCurrentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                setDarkMode(!isCurrentlyDark);
+            });
+        }
+        
+        function setDarkMode(isDark) {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.getElementById('darkModeIcon');
+            if (icon) {
+                icon.className = isDark ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+        }
+
+        // Initialize dark mode
+        document.addEventListener('DOMContentLoaded', initDarkMode);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

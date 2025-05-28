@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skedge | Calendar</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/SkedgeLogo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #212529;
+            --bg-secondary: #343a40;
+            --border-color: #495057;
+            --text-primary: #f8f9fa;
+            --text-secondary: #adb5bd;
+        }
+
+        body {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+            width: auto;
+            margin-right: 8px;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+        .calendar {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .calendar-header {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .calendar-body {
+            padding: 15px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        .calendar-day {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            transition: all 0.2s;
+            padding: 8px;
+            min-height: 120px;
+            position: relative;
+        }
+        .calendar-day:hover {
+            background-color: var(--bg-secondary);
+        }
+        .calendar-day.today {
+            border: 2px solid #0d6efd;
+        }
+        .calendar-day.other-month {
+            background-color: var(--bg-secondary);
+            color: var(--text-secondary);
+        }
+        .weekday-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px 0;
+            color: var(--text-primary);
+        }
+        .current-time {
+            color: var(--text-primary);
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .day-number {
+            color: var(--text-primary);
+        }
+        .day-menu {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            cursor: pointer;
+        }
+        .day-menu .dropdown-menu {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+        }
+        .day-menu .dropdown-item {
+            color: var(--text-primary);
+        }
+        .day-menu .dropdown-item:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .events-list {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            overflow-y: auto;
+            max-height: calc(100% - 30px);
+        }
+        .event-item {
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 3px;
+            font-size: 0.75rem;
+            color: white;
+            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+            line-height: 1.3;
+        }
+        .event-item:hover {
+            filter: brightness(90%);
+        }
+        .event-item .event-time {
+            opacity: 0.85;
+            font-size: 0.7rem;
+        }
+        .event-item .event-subject {
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .event-item .event-details {
+            opacity: 0.8;
+            font-size: 0.7rem;
+            margin-top: 1px;
+        }
+        .modal-body .form-group {
+            margin-bottom: 1rem;
+        }
+        .modal-content {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        .form-control, .form-select {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .form-select option {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .form-select optgroup {
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+        .btn-close {
+            filter: invert(var(--bs-btn-close-white));
+        }
+        #darkModeToggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,.55);
+            text-decoration: none;
+        }
+        #darkModeToggle:hover {
+            color: rgba(255,255,255,.75);
+        }
+        .table {
+            color: var(--text-primary);
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: var(--bg-secondary);
+        }
+        .btn-outline-primary {
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+        .modal-header, .modal-footer {
+            border-color: var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <img src="{{ url_for('static', filename='assets/SkedgeLogo.png') }}" alt="Skedge Logo">
+                Skedge
+            </span>
+            <div class="navbar-nav ms-auto">
+                <a href="#" id="darkModeToggle" class="nav-link">
+                    <i class="bi bi-sun-fill" id="darkModeIcon"></i>
+                </a>
+                {% if is_admin_view %}
+                    <a class="nav-link" href="/admin">Dashboard</a>
+                {% else %}
+                    <a class="nav-link" href="/?edit=true">Profile</a>
+                {% endif %}
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-12" 
+                 data-is-admin-view="{{ 'true' if is_admin_view else 'false' }}"
+                 data-user-id="{{ user.id }}">
+                {% if is_admin_view %}
+                    <h2 class="mb-4">Viewing Schedule: {{ user.username }}</h2>
+                {% endif %}
+                <div class="current-time mb-4" id="current-time">
+                    <!-- Time will be updated by JavaScript -->
+                </div>
+                
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button class="btn btn-outline-primary" onclick="previousMonth()">&lt;</button>
+                            <h3 class="mb-0" id="calendar-month"><!-- Month and year will be set by JavaScript --></h3>
+                            <button class="btn btn-outline-primary" onclick="nextMonth()">&gt;</button>
+                        </div>
+                    </div>
+                    <div class="calendar-body">
+                        <div class="calendar-grid">
+                            <div class="weekday-header">Sun</div>
+                            <div class="weekday-header">Mon</div>
+                            <div class="weekday-header">Tue</div>
+                            <div class="weekday-header">Wed</div>
+                            <div class="weekday-header">Thu</div>
+                            <div class="weekday-header">Fri</div>
+                            <div class="weekday-header">Sat</div>
+                        </div>
+                        <div class="calendar-grid" id="calendar-days">
+                            <!-- Calendar days will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="eventForm">
+                        <input type="hidden" id="eventDate">
+                        <div class="row mb-3">
+                            <div class="col-md-10">
+                                <label for="subject">Subject</label>
+                                <select class="form-control" id="subject" required {% if is_admin_view %}disabled{% endif %}>
+                                    <!-- Mandatory Subjects -->
+                                    <optgroup label="Mandatory Subjects">
+                                        <option value="English">English</option>
+                                        <option value="Arts and Crafts">Arts and Crafts</option>
+                                        <option value="Physical Education">Physical Education</option>
+                                    </optgroup>
+                                    
+                                    <!-- Optional Subjects -->
+                                    {% if user and user.profile and user.profile.subjects %}
+                                        <optgroup label="Optional Subjects">
+                                        {% for subject in user.profile.subjects.split(',') %}
+                                            {% set subject = subject.strip() %}
+                                            {% if subject not in ['English', 'Arts and Crafts', 'Physical Education'] %}
+                                                <option value="{{ subject }}">{{ subject }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                        </optgroup>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex flex-column align-items-center">
+                                <label for="eventColor">Color</label>
+                                <div style="width: 38px; height: 38px;">
+                                    <input type="color" class="form-control form-control-color p-0 border-0" 
+                                           id="eventColor" value="#0d6efd" title="Choose event color"
+                                           style="width: 38px; height: 38px; border-radius: 50%; padding: 2px; appearance: none;"
+                                           {% if is_admin_view %}disabled{% endif %}>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="details">Details</label>
+                            <textarea class="form-control" id="details" rows="2" placeholder="Enter event details" {% if is_admin_view %}readonly{% endif %}></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="startTime">Start Time</label>
+                                <input type="time" class="form-control" id="startTime" required>
+                            </div>
+                            <div class="col">
+                                <label for="endTime">End Time</label>
+                                <input type="time" class="form-control" id="endTime" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let displayedMonth = currentDate.getMonth();
+        let displayedYear = currentDate.getFullYear();
+        let events = {};  // Will store events by date
+        const calendarContainer = document.querySelector('.col-md-12');
+        const isAdminView = calendarContainer.dataset.isAdminView === 'true';
+        const userId = parseInt(calendarContainer.dataset.userId);
+
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeString;
+        }
+
+        function formatEventTime(time) {
+            return time.replace(/^(\d{2}):(\d{2}).*$/, '$1:$2');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        function createDayCell(day, isOtherMonth = false, eventsList = []) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'calendar-day' + (isOtherMonth ? ' other-month' : '');
+            
+            if (day === currentDate.getDate() && 
+                displayedMonth === currentDate.getMonth() && 
+                displayedYear === currentDate.getFullYear() && 
+                !isOtherMonth) {
+                dayDiv.className += ' today';
+            }
+
+            // Add day number
+            const dayNumber = document.createElement('span');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            dayDiv.appendChild(dayNumber);
+
+            // Add menu dots
+            const menuDiv = document.createElement('div');
+            menuDiv.className = 'day-menu dropdown';
+            menuDiv.innerHTML = `
+                <i class="bi bi-three-dots" data-bs-toggle="dropdown"></i>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEventModal('${displayedYear}-${displayedMonth + 1}-${day}')">Add Event</a></li>
+                </ul>
+            `;
+            dayDiv.appendChild(menuDiv);
+
+            // Add events list
+            const eventsListDiv = document.createElement('div');
+            eventsListDiv.className = 'events-list';
+            eventsList.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = 'event-item';
+                eventItem.style.backgroundColor = event.color || '#0d6efd';
+                let eventContent = `<div class="d-flex justify-content-between align-items-start w-100">
+                    <div class="flex-grow-1 pe-2">
+                        <div>
+                            <span class="event-subject">${event.subject}</span>
+                            <span class="event-time ms-2">${formatEventTime(event.startTime)} - ${formatEventTime(event.endTime)}</span>
+                        </div>
+                        ${event.details ? `<div class="event-details">${event.details}</div>` : ''}
+                    </div>
+                    <i class="bi bi-x" style="font-size: 0.9rem;" onclick="deleteEvent('${displayedYear}-${displayedMonth + 1}-${day}', ${event.id})"></i>
+                </div>`;
+                eventItem.innerHTML = eventContent;
+                eventsListDiv.appendChild(eventItem);
+            });
+            dayDiv.appendChild(eventsListDiv);
+
+            return dayDiv;
+        }
+
+        function updateCalendar() {
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"];
+            
+            document.getElementById('calendar-month').textContent = 
+                `${monthNames[displayedMonth]} ${displayedYear}`;
+
+            const firstDay = new Date(displayedYear, displayedMonth, 1);
+            const lastDay = new Date(displayedYear, displayedMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDay = firstDay.getDay();
+
+            const calendarDays = document.getElementById('calendar-days');
+            calendarDays.innerHTML = '';
+
+            // Previous month's days
+            const prevMonthLastDay = new Date(displayedYear, displayedMonth, 0).getDate();
+            for (let i = startingDay - 1; i >= 0; i--) {
+                calendarDays.appendChild(createDayCell(prevMonthLastDay - i, true));
+            }
+
+            // Current month's days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${displayedYear}-${displayedMonth + 1}-${day}`;
+                const dayEvents = events[dateKey] || [];
+                calendarDays.appendChild(createDayCell(day, false, dayEvents));
+            }
+
+            // Next month's days
+            const totalCells = 42;
+            const remainingCells = totalCells - (startingDay + daysInMonth);
+            for (let day = 1; day <= remainingCells; day++) {
+                calendarDays.appendChild(createDayCell(day, true));
+            }
+        }
+
+        function loadEvents() {
+            const url = new URL('/api/events', window.location.origin);
+            url.searchParams.append('month', displayedMonth + 1);
+            url.searchParams.append('year', displayedYear);
+            if (isAdminView) {
+                url.searchParams.append('user_id', userId);
+            }
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            window.location.href = '/login';
+                            return;
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error loading events:', data.error);
+                        return;
+                    }
+                    // Clear existing events
+                    events = {};
+                    // Convert date strings to the format we use (YYYY-M-D)
+                    Object.entries(data).forEach(([dateStr, eventsList]) => {
+                        const [year, month, day] = dateStr.split('-');
+                        const newDateStr = `${year}-${parseInt(month)}-${parseInt(day)}`;
+                        events[newDateStr] = eventsList;
+                    });
+                    updateCalendar();
+                })
+                .catch(error => {
+                    console.error('Error loading events:', error);
+                });
+        }
+
+        function saveEvent() {
+            const date = document.getElementById('eventDate').value;
+            const subject = document.getElementById('subject').value;
+            const details = document.getElementById('details').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const color = document.getElementById('eventColor').value;
+
+            if (!startTime || !endTime) {
+                alert('Please select both start and end times');
+                return;
+            }
+
+            const eventData = {
+                date: date,
+                subject: subject,
+                details: details,
+                startTime: startTime,
+                endTime: endTime,
+                color: color
+            };
+
+            if (isAdminView) {
+                eventData.user_id = userId;
+            }
+
+            fetch('/api/events', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(eventData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    console.error('Error saving event:', data.error);
+                    alert('Error saving event: ' + data.error);
+                    return;
+                }
+
+                // Format the date key correctly
+                const [year, month, day] = date.split('-');
+                const dateKey = `${year}-${parseInt(month)}-${parseInt(day)}`;
+
+                if (!events[dateKey]) {
+                    events[dateKey] = [];
+                }
+                events[dateKey].push(data);
+                updateCalendar();
+                const modalInstance = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                modalInstance.hide();
+            })
+            .catch(error => {
+                console.error('Error saving event:', error);
+                alert('Error saving event. Please try again.');
+            });
+        }
+
+        function deleteEvent(date, eventId) {
+            if (!confirm('Are you sure you want to delete this event?')) {
+                return;
+            }
+
+            fetch(`/api/events/${eventId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    console.error('Error deleting event:', data.error);
+                    alert('Error deleting event: ' + data.error);
+                    return;
+                }
+
+                // Format the date key correctly
+                const [year, month, day] = date.split('-');
+                const dateKey = `${year}-${parseInt(month)}-${parseInt(day)}`;
+
+                if (events[dateKey]) {
+                    events[dateKey] = events[dateKey].filter(e => e.id !== eventId);
+                    if (events[dateKey].length === 0) {
+                        delete events[dateKey];
+                    }
+                }
+                updateCalendar();
+            })
+            .catch(error => {
+                console.error('Error deleting event:', error);
+                alert('Error deleting event. Please try again.');
+            });
+        }
+
+        function previousMonth() {
+            displayedMonth--;
+            if (displayedMonth < 0) {
+                displayedMonth = 11;
+                displayedYear--;
+            }
+            loadEvents();
+        }
+
+        function nextMonth() {
+            displayedMonth++;
+            if (displayedMonth > 11) {
+                displayedMonth = 0;
+                displayedYear++;
+            }
+            loadEvents();
+        }
+
+        function resetEventForm() {
+            const form = document.getElementById('eventForm');
+            form.reset();
+            document.getElementById('eventColor').value = '#0d6efd';
+            document.getElementById('details').value = '';
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+        }
+
+        function openEventModal(date) {
+            resetEventForm();
+            
+            // Set date and title
+            document.getElementById('eventDate').value = date;
+            document.querySelector('#eventModal .modal-title').textContent = `Add Event for ${formatDate(date)}`;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+            modal.show();
+        }
+
+        // Initialize calendar
+        document.addEventListener('DOMContentLoaded', () => {
+            initDarkMode();
+            loadEvents();
+            updateTime();
+            setInterval(updateTime, 1000);
+        });
+
+        // Dark mode functionality
+        function initDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (!darkModeToggle) return;
+
+            // Check for saved dark mode preference
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            setDarkMode(isDarkMode);
+            
+            darkModeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isCurrentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                setDarkMode(!isCurrentlyDark);
+            });
+        }
+        
+        function setDarkMode(isDark) {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.getElementById('darkModeIcon');
+            if (icon) {
+                icon.className = isDark ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

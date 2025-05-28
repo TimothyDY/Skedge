@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skedge | Admin</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/SkedgeLogo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --border-color: #dee2e6;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #212529;
+            --bg-secondary: #343a40;
+            --border-color: #495057;
+            --text-primary: #f8f9fa;
+            --text-secondary: #adb5bd;
+        }
+
+        body {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar-brand img {
+            height: 30px;
+            width: auto;
+            margin-right: 8px;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+        }
+
+        #darkModeToggle {
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,.55);
+            text-decoration: none;
+        }
+
+        #darkModeToggle:hover {
+            color: rgba(255,255,255,.75);
+        }
+
+        .table {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .table thead th {
+            border-color: var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .table td {
+            border-color: var(--border-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary);
+        }
+
+        .card {
+            background-color: var(--bg-primary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <img src="{{ url_for('static', filename='assets/SkedgeLogo.png') }}" alt="Skedge Logo">
+                Skedge
+            </span>
+            <div class="navbar-nav ms-auto">
+                <a href="#" id="darkModeToggle" class="nav-link">
+                    <i class="bi bi-sun-fill" id="darkModeIcon"></i>
+                </a>
+                <a class="nav-link" href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Admin Dashboard</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Student Data</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Grade</th>
+                                <th>Stream</th>
+                                <th>Class</th>
+                                <th>Subjects</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.username }}</td>
+                                <td>{{ student.profile.full_name if student.profile else 'Not set' }}</td>
+                                <td>{{ student.profile.grade if student.profile else 'Not set' }}</td>
+                                <td>{{ student.profile.stream.title() if student.profile and student.profile.stream else 'Not set' }}</td>
+                                <td>{{ student.profile.class_number if student.profile else 'Not set' }}</td>
+                                <td>{{ student.profile.subjects.replace(',', ', ') if student.profile and student.profile.subjects else 'Not set' }}</td>
+                                <td>
+                                    <a href="/calendar/{{ student.id }}" class="btn btn-sm btn-primary">View Schedule</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Dark mode functionality
+        function initDarkMode() {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (!darkModeToggle) return;
+
+            // Check for saved dark mode preference
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            setDarkMode(isDarkMode);
+            
+            darkModeToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                const isCurrentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                setDarkMode(!isCurrentlyDark);
+            });
+        }
+        
+        function setDarkMode(isDark) {
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('darkMode', isDark);
+            
+            const icon = document.getElementById('darkModeIcon');
+            if (icon) {
+                icon.className = isDark ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+            }
+        }
+
+        // Initialize dark mode
+        document.addEventListener('DOMContentLoaded', initDarkMode);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
