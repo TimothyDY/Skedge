@@ -164,10 +164,5 @@ All dependencies are listed in `requirements.txt` with their specific versions:
 - Flask-SQLAlchemy==3.1.1
 - python-dotenv==1.0.0
 - Werkzeug==3.0.1
-- SQLAlchemy==2.0.23
-- Jinja2==3.1.2
-- click==8.1.7
-- itsdangerous==2.1.2
-- MarkupSafe==2.1.3
-- typing_extensions==4.8.0
-- greenlet==3.0.1
+
+Note: Other required packages will be automatically installed as dependencies of the above packages.
