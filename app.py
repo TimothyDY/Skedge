@@ -1,56 +1,31 @@
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, session, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Profile, Event
-from datetime import datetime, date
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-
-# Get the absolute path of the current directory
-base_dir = os.path.abspath(os.path.dirname(__file__))
-
-# Ensure instance folder exists
-instance_dir = os.path.join(base_dir, 'instance')
-if not os.path.exists(instance_dir):
-    os.makedirs(instance_dir)
-
-# Set the database path to be in the instance folder
-db_path = os.path.join(instance_dir, 'skedge.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///skedge.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'your-secret-key-here'
+
+from models import db, User, Profile, Event
 
 db.init_app(app)
 
 def init_db():
-    try:
-        with app.app_context():
-            # Drop all tables first to ensure a clean slate
-            db.drop_all()
-            print("Dropped all existing tables")
-            
-            # Create all tables
-            db.create_all()
-            print("Database tables created successfully")
-            
-            # Create admin user if it doesn't exist
-            admin = User.query.filter_by(username='admin').first()
-            if not admin:
-                admin = User(
-                    username='admin',
-                    password=generate_password_hash('qwerty'),
-                    role='admin'
-                )
-                db.session.add(admin)
-                db.session.commit()
-                print("Admin user created successfully")
-            else:
-                print("Admin user already exists")
-    except Exception as e:
-        print(f"Error initializing database: {str(e)}")
-        raise  # Re-raise the exception to see the full error
+    with app.app_context():
+        db.create_all()
+        admin_exists = User.query.filter_by(username='admin').first()
+        if not admin_exists:
+            admin = User(
+                username='admin',
+                password=generate_password_hash('admin123'),
+                role='admin'
+            )
+            db.session.add(admin)
+            db.session.commit()
 
-# Initialize database
 init_db()
 
 @app.route('/')
@@ -66,16 +41,13 @@ def index():
     if user.role == 'admin':
         return redirect('/admin')
 
-    # Force show profile if requested via query parameter
     force_profile = request.args.get('edit', 'false').lower() == 'true'
     if force_profile:
         return render_template('index.html', user=user)
 
-    # Check if profile exists
     if not user.profile:
         return render_template('index.html', user=user)
         
-    # Check if all required fields are filled
     profile = user.profile
     if not all([
         profile.full_name,
@@ -95,15 +67,11 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
-        print(f"Login attempt for username: {username}")
         user = User.query.filter_by(username=username).first()
-        
         if user and check_password_hash(user.password, password):
-            print(f"Login successful for {username}, role: {user.role}")
             session['user_id'] = user.id
             return redirect('/')
-        
-        print(f"Login failed for {username}")
+            
         return render_template('login.html', error='Invalid username or password')
         
     return render_template('login.html')
@@ -113,14 +81,17 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        confirm_password = request.form['confirm_password']
         
+        if password != confirm_password:
+            return render_template('register.html', error='Passwords do not match')
+            
         if User.query.filter_by(username=username).first():
             return render_template('register.html', error='Username already exists')
             
         user = User(
             username=username,
-            password=generate_password_hash(password),
-            role='student'
+            password=generate_password_hash(password)
         )
         db.session.add(user)
         db.session.commit()
@@ -130,17 +101,10 @@ def register():
         
     return render_template('register.html')
 
-@app.route('/admin')
-def admin():
-    if 'user_id' not in session:
-        return redirect('/login')
-    
-    user = User.query.get(session['user_id'])
-    if not user or user.role != 'admin':
-        return redirect('/')
-    
-    students = User.query.filter_by(role='student').all()
-    return render_template('admin.html', students=students)
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
 
 @app.route('/calendar')
 def calendar():
@@ -152,7 +116,6 @@ def calendar():
         session.clear()
         return redirect('/login')
     
-    # If no profile or incomplete profile, redirect to profile page
     if not user.profile:
         return redirect('/')
         
@@ -249,52 +212,18 @@ def update_profile():
     
     return redirect('/calendar')
 
-@app.route('/data_students')
-def data_students():
+@app.route('/admin')
+def admin():
     if 'user_id' not in session:
         return redirect('/login')
-        
+    
     user = User.query.get(session['user_id'])
     if not user or user.role != 'admin':
         return redirect('/')
     
     students = User.query.filter_by(role='student').all()
-    return render_template("data_students.html", students=students)
+    return render_template('admin.html', students=students)
 
-@app.route('/data_customer')
-def data_customer():
-    users = User.query.all()
-    users_tanpa_admin = User.query.filter_by(role='student').all()
-    return render_template("data_customer.html", users = users, users_tanpa_admin = users_tanpa_admin)
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/login')
-
-def create_admin():
-    try:
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            print("Creating admin account...")
-            new_admin = User(
-                username='admin',
-                password=generate_password_hash('qwerty'),
-                role='admin'
-            )
-            db.session.add(new_admin)
-            db.session.commit()
-            print("Admin account created successfully!")
-        else:
-            print("Admin account exists, resetting password...")
-            admin.password = generate_password_hash('qwerty')
-            db.session.commit()
-            print("Admin password reset successfully!")
-    except Exception as e:
-        print(f"Error managing admin account: {str(e)}")
-        db.session.rollback()
-
-# New routes for calendar events
 @app.route('/api/events')
 def get_events():
     if 'user_id' not in session:
@@ -305,7 +234,6 @@ def get_events():
         session.clear()
         return jsonify({'error': 'User not found'}), 404
     
-    # Get target user (either current user or student being viewed by admin)
     target_user_id = request.args.get('user_id', type=int)
     if target_user_id and current_user.role == 'admin':
         target_user = User.query.get(target_user_id)
@@ -314,7 +242,6 @@ def get_events():
     else:
         target_user = current_user
     
-    # Get month and year from query parameters
     month = request.args.get('month', type=int)
     year = request.args.get('year', type=int)
     
@@ -323,7 +250,6 @@ def get_events():
     
     try:
         print(f"Loading events for user {target_user.id}, month {month}, year {year}")
-        # Query events for the specified month
         events = Event.query.filter(
             Event.user_id == target_user.id,
             db.extract('month', Event.date) == month,
@@ -361,18 +287,17 @@ def create_event():
         session.clear()
         return jsonify({'error': 'User not found'}), 404
     
-    # Get target user (either current user or student being modified by admin)
-    target_user_id = request.json.get('user_id')
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    target_user_id = data.get('user_id')
     if target_user_id and current_user.role == 'admin':
         target_user = User.query.get(target_user_id)
         if not target_user:
             return jsonify({'error': 'Target user not found'}), 404
     else:
         target_user = current_user
-    
-    data = request.json
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
     
     try:
         print(f"Creating event for user {target_user.id}")
@@ -425,7 +350,6 @@ def delete_event(event_id):
     if not event:
         return jsonify({'error': 'Event not found'}), 404
     
-    # Allow admin to delete any event, but students can only delete their own
     if current_user.role != 'admin' and event.user_id != current_user.id:
         return jsonify({'error': 'Not authorized'}), 403
     

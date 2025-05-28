@@ -236,15 +236,13 @@
                 {% if is_admin_view %}
                     <h2 class="mb-4">Viewing Schedule: {{ user.username }}</h2>
                 {% endif %}
-                <div class="current-time mb-4" id="current-time">
-                    <!-- Time will be updated by JavaScript -->
-                </div>
+                <div class="current-time mb-4" id="current-time"></div>
                 
                 <div class="calendar">
                     <div class="calendar-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <button class="btn btn-outline-primary" onclick="previousMonth()">&lt;</button>
-                            <h3 class="mb-0" id="calendar-month"><!-- Month and year will be set by JavaScript --></h3>
+                            <h3 class="mb-0" id="calendar-month"></h3>
                             <button class="btn btn-outline-primary" onclick="nextMonth()">&gt;</button>
                         </div>
                     </div>
@@ -258,16 +256,13 @@
                             <div class="weekday-header">Fri</div>
                             <div class="weekday-header">Sat</div>
                         </div>
-                        <div class="calendar-grid" id="calendar-days">
-                            <!-- Calendar days will be populated by JavaScript -->
-                        </div>
+                        <div class="calendar-grid" id="calendar-days"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Event Modal -->
     <div class="modal fade" id="eventModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -282,14 +277,12 @@
                             <div class="col-md-10">
                                 <label for="subject">Subject</label>
                                 <select class="form-control" id="subject" required {% if is_admin_view %}disabled{% endif %}>
-                                    <!-- Mandatory Subjects -->
                                     <optgroup label="Mandatory Subjects">
                                         <option value="English">English</option>
                                         <option value="Arts and Crafts">Arts and Crafts</option>
                                         <option value="Physical Education">Physical Education</option>
                                     </optgroup>
                                     
-                                    <!-- Optional Subjects -->
                                     {% if user and user.profile and user.profile.subjects %}
                                         <optgroup label="Optional Subjects">
                                         {% for subject in user.profile.subjects.split(',') %}
@@ -340,7 +333,7 @@
         let currentDate = new Date();
         let displayedMonth = currentDate.getMonth();
         let displayedYear = currentDate.getFullYear();
-        let events = {};  // Will store events by date
+        let events = {};
         const calendarContainer = document.querySelector('.col-md-12');
         const isAdminView = calendarContainer.dataset.isAdminView === 'true';
         const userId = parseInt(calendarContainer.dataset.userId);
@@ -379,24 +372,23 @@
                 dayDiv.className += ' today';
             }
 
-            // Add day number
             const dayNumber = document.createElement('span');
             dayNumber.className = 'day-number';
             dayNumber.textContent = day;
             dayDiv.appendChild(dayNumber);
 
-            // Add menu dots
-            const menuDiv = document.createElement('div');
-            menuDiv.className = 'day-menu dropdown';
-            menuDiv.innerHTML = `
-                <i class="bi bi-three-dots" data-bs-toggle="dropdown"></i>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEventModal('${displayedYear}-${displayedMonth + 1}-${day}')">Add Event</a></li>
-                </ul>
-            `;
-            dayDiv.appendChild(menuDiv);
+            if (!isAdminView) {
+                const menuDiv = document.createElement('div');
+                menuDiv.className = 'day-menu dropdown';
+                menuDiv.innerHTML = `
+                    <i class="bi bi-three-dots" data-bs-toggle="dropdown"></i>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEventModal('${displayedYear}-${displayedMonth + 1}-${day}')">Add Event</a></li>
+                    </ul>
+                `;
+                dayDiv.appendChild(menuDiv);
+            }
 
-            // Add events list
             const eventsListDiv = document.createElement('div');
             eventsListDiv.className = 'events-list';
             eventsList.forEach(event => {
@@ -436,20 +428,17 @@
             const calendarDays = document.getElementById('calendar-days');
             calendarDays.innerHTML = '';
 
-            // Previous month's days
             const prevMonthLastDay = new Date(displayedYear, displayedMonth, 0).getDate();
             for (let i = startingDay - 1; i >= 0; i--) {
                 calendarDays.appendChild(createDayCell(prevMonthLastDay - i, true));
             }
 
-            // Current month's days
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateKey = `${displayedYear}-${displayedMonth + 1}-${day}`;
                 const dayEvents = events[dateKey] || [];
                 calendarDays.appendChild(createDayCell(day, false, dayEvents));
             }
 
-            // Next month's days
             const totalCells = 42;
             const remainingCells = totalCells - (startingDay + daysInMonth);
             for (let day = 1; day <= remainingCells; day++) {
@@ -481,9 +470,7 @@
                         console.error('Error loading events:', data.error);
                         return;
                     }
-                    // Clear existing events
                     events = {};
-                    // Convert date strings to the format we use (YYYY-M-D)
                     Object.entries(data).forEach(([dateStr, eventsList]) => {
                         const [year, month, day] = dateStr.split('-');
                         const newDateStr = `${year}-${parseInt(month)}-${parseInt(day)}`;
@@ -546,7 +533,6 @@
                     return;
                 }
 
-                // Format the date key correctly
                 const [year, month, day] = date.split('-');
                 const dateKey = `${year}-${parseInt(month)}-${parseInt(day)}`;
 
@@ -585,7 +571,6 @@
                     return;
                 }
 
-                // Format the date key correctly
                 const [year, month, day] = date.split('-');
                 const dateKey = `${year}-${parseInt(month)}-${parseInt(day)}`;
 
@@ -633,16 +618,13 @@
         function openEventModal(date) {
             resetEventForm();
             
-            // Set date and title
             document.getElementById('eventDate').value = date;
             document.querySelector('#eventModal .modal-title').textContent = `Add Event for ${formatDate(date)}`;
 
-            // Show modal
             const modal = new bootstrap.Modal(document.getElementById('eventModal'));
             modal.show();
         }
 
-        // Initialize calendar
         document.addEventListener('DOMContentLoaded', () => {
             initDarkMode();
             loadEvents();
@@ -650,12 +632,10 @@
             setInterval(updateTime, 1000);
         });
 
-        // Dark mode functionality
         function initDarkMode() {
             const darkModeToggle = document.getElementById('darkModeToggle');
             if (!darkModeToggle) return;
 
-            // Check for saved dark mode preference
             const isDarkMode = localStorage.getItem('darkMode') === 'true';
             setDarkMode(isDarkMode);
             

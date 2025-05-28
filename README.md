@@ -11,11 +11,11 @@ Skedge is a web-based academic schedule management system built with Flask that 
   - Password hashing for security
 - **Profile Management**
   - Complete academic profile setup
-  - Grade level selection
+  - Grade level selection (10-12)
   - Stream selection (Science/Social Studies)
+  - Language selection (French, German, Japanese, Korean, Mandarin)
+  - Class number assignment (1-10)
   - Subject selection based on stream
-  - Class number assignment
-  - Language preference
 
 ### Calendar System
 - **Interactive Calendar Interface**
@@ -23,16 +23,16 @@ Skedge is a web-based academic schedule management system built with Flask that 
   - Real-time clock display
   - Day-by-day event organization
 - **Event Management**
-  - Add/edit/delete events
+  - Add/delete events
   - Subject-based event creation
   - Custom time slots
   - Color-coding for better organization
   - Event details and descriptions
   - Persistent storage across sessions
 - **Admin Features**
-  - View and manage student schedules
+  - View student schedules
   - Access to all student profiles
-  - Student data management
+  - Student data monitoring
 
 ### UI/UX Features
 - **Responsive Design**
@@ -52,9 +52,11 @@ Skedge is a web-based academic schedule management system built with Flask that 
 
 ### Backend
 - **Framework**: Flask 3.0.0
-- **Database**: SQLAlchemy 2.0.25
-- **Authentication**: Werkzeug 3.0.1
+- **Database**: Flask-SQLAlchemy 3.1.1
 - **Environment**: python-dotenv 1.0.0
+- **Security**: Werkzeug 3.0.1
+- **ORM**: SQLAlchemy 2.0.23
+- **Template Engine**: Jinja2 3.1.2
 
 ### Frontend
 - **Framework**: Bootstrap 5.3.0
@@ -89,7 +91,7 @@ Skedge/
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/TimothyDY/Skedge.git
 cd Skedge
 ```
 
@@ -109,13 +111,7 @@ source env/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Initialize the database:
-```bash
-# The database will be automatically initialized when you run the app
-python app.py
-```
-
-5. Run the application:
+4. Run the application:
 ```bash
 python app.py
 ```
@@ -124,17 +120,18 @@ The application will be available at `http://localhost:5000`
 
 ## Default Admin Account
 - Username: admin
-- Password: qwerty
+- Password: admin123
 
 ## Usage Guide
 
 ### For Students
 1. Register a new account
 2. Complete your academic profile:
-   - Set your grade level
-   - Choose your stream
-   - Select your subjects
-   - Set your class number
+   - Set your grade level (10-12)
+   - Choose your stream (Science/Social Studies)
+   - Select your language (French, German, Japanese, Korean, Mandarin)
+   - Set your class number (1-10)
+   - Select your subjects based on stream
 3. Use the calendar to manage your schedule:
    - Click on any day to add an event
    - Select subject and time
@@ -154,7 +151,6 @@ The application will be available at `http://localhost:5000`
 - Session-based authentication
 - Role-based access control
 - SQL injection protection via SQLAlchemy
-- CSRF protection
 
 ## Browser Support
 - Chrome (recommended)
@@ -162,5 +158,16 @@ The application will be available at `http://localhost:5000`
 - Safari
 - Edge
 
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Dependencies
+All dependencies are listed in `requirements.txt` with their specific versions:
+- Flask==3.0.0
+- Flask-SQLAlchemy==3.1.1
+- python-dotenv==1.0.0
+- Werkzeug==3.0.1
+- SQLAlchemy==2.0.23
+- Jinja2==3.1.2
+- click==8.1.7
+- itsdangerous==2.1.2
+- MarkupSafe==2.1.3
+- typing_extensions==4.8.0
+- greenlet==3.0.1

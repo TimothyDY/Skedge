@@ -29,5 +29,5 @@ class Event(db.Model):
     date = db.Column(db.Date, nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
-    color = db.Column(db.String(7), default='#0d6efd')  # Store color as hex code
+    color = db.Column(db.String(7), default='#0d6efd')
     created_at = db.Column(db.DateTime, default=datetime.utcnow) 
