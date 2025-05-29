@@ -99,7 +99,7 @@ cd Skedge
 ```bash
 # Windows
 python -m venv env
-env\Scripts\activate
+env/Scripts/activate
 
 # Linux/MacOS
 python3 -m venv env
