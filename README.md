@@ -2,6 +2,9 @@
 
 Skedge is a web-based academic schedule management system built with Flask that helps students organize their class schedules and academic events. It features a user-friendly interface with a modern design and supports both light and dark themes.
 
+## Preview
+![Screenshot](https://github.com/user-attachments/assets/3ffa5353-17a7-4e29-bc8c-02f23be3c2a3)
+
 ## Features
 
 ### User Management
